@@ -1,0 +1,32 @@
+extends layout
+
+block content
+    h1= title
+    p Welcome to #{title}
+    span Please login
+    form#login(name="login", method="POST", action="/validate")
+        span Username
+        span &nbsp;
+        input#input_Username(type="text", placeholder="Username", name="username")
+        br
+        br
+        span Password
+        span &nbsp;
+        input#input_Password(type="password", placeholder="password", name="password")
+        button#submit_login(type="submit") submit
+    br
+    br
+    // TODO: Replace with Bootstrap Modal
+    span New Account
+    form#new_user(name="new_user", method="POST", action="/insert")
+        span Username
+        span &nbsp;
+        input#create_Username(type="text", placeholder="Username", name="username", required="required")
+        br
+        br
+        span Password
+        span &nbsp;
+        input#create_Password(type="password", placeholder="Password", name="password", required="required", pattern=".{6,}")
+        button#submit_new_user(type="submit") Submit
+
+
