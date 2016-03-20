@@ -36,7 +36,7 @@ router.post('/validate', function(req, res) {
                username: req.body.username,
                password: req.body.password
            };
-           user_collection.findOne(
+           user_collection.find(
                {
                    username: req.body.username,
                    password: req.body.password
@@ -101,5 +101,7 @@ router.get('/logout', function(req, res) {
     req.session.destroy();
     res.redirect('/');
 });
+
+
 
 module.exports = router;

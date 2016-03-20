@@ -3,6 +3,8 @@ extends layout
 block content
     h1= title
     p Welcome to #{title}
+
+
     span Please login
     form#login(name="login", method="POST", action="/validate")
         span Username
@@ -28,5 +30,4 @@ block content
         span &nbsp;
         input#create_Password(type="password", placeholder="Password", name="password", required="required", pattern=".{6,}")
         button#submit_new_user(type="submit") Submit
-
 
