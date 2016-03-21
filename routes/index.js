@@ -4,6 +4,9 @@ var mongodb = require('mongodb');
 var session = require("express-session");
 var database_name = "ShipDB";
 var collection_name_users = "users";
+var collection_name_colleges = "colleges";
+var mongodb_url_prefix = "mongodb://localhost:27017/";
+
 router.use(session({
     cookieName: 'session',
     secret: 'random_string',
@@ -43,7 +46,6 @@ router.post('/validate', function(req, res) {
                }
            ).toArray(function(err, result) {
                if(!err) {
-                   console.log(result.length);
                    if (result.length) {
                        // Successful login
                        req.session.user = result;
@@ -102,6 +104,32 @@ router.get('/logout', function(req, res) {
     res.redirect('/');
 });
 
-
+router.get('/search', function(req, res) {
+    var MongoClient = mongodb.MongoClient;
+    var url = "mongodb://localhost:27017/"+database_name;
+    MongoClient.connect(url, function(err, db) {
+        if(!err) {
+            var college_collection = db.collection(collection_name_colleges);
+            var user_input_college = {
+                "institution name": req.param('college_input')
+            };
+            console.log(user_input_college + "HI");
+            college_collection.find( { "institution name": req.param('college_input')  } ).toArray(function(err, result) {
+                if(!err) {
+                    if(result.length) {
+                        res.send(result.toString());
+                    } else {
+                        res.send("Nothing found!");
+                    }
+                    db.close();
+                } else {
+                    console.log(err);
+                }
+            });
+        } else {
+            console.log(err);
+        }
+    });
+});
 
 module.exports = router;
