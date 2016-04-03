@@ -2,10 +2,11 @@ var express = require('express');
 var router = express.Router();
 var mongodb = require('mongodb');
 var session = require("express-session");
+var mongodb_url_prefix = "mongodb://localhost:27017/";
 var database_name = "ShipDB";
+var ShipDB_url = mongodb_url_prefix + database_name;
 var collection_name_users = "users";
 var collection_name_colleges = "colleges";
-var mongodb_url_prefix = "mongodb://localhost:27017/";
 
 router.use(session({
     cookieName: 'session',
@@ -30,7 +31,7 @@ router.get('/home', function(req, res) {
 
 router.post('/validate', function(req, res) {
     var MongoClient = mongodb.MongoClient;
-    var url = "mongodb://localhost:27017/"+database_name;
+    var url = mongodb_url_prefix + database_name;
     MongoClient.connect(url, function(err, db) {
        if(!err) {
            console.log("Connection established successfully");
@@ -70,7 +71,7 @@ router.post('/validate', function(req, res) {
 
 router.post('/insert', function(req, res) {
     var MongoClient = mongodb.MongoClient;
-    var URL = "mongodb://localhost:27017/"+database_name;
+    var URL = mongodb_url_prefix + database_name;
     MongoClient.connect(URL, function(err, db) {
         if(!err) {
             var user_collection = db.collection(collection_name_users);
@@ -106,18 +107,30 @@ router.get('/logout', function(req, res) {
 
 router.get('/search', function(req, res) {
     var MongoClient = mongodb.MongoClient;
-    var url = "mongodb://localhost:27017/"+database_name;
+    var url = mongodb_url_prefix + database_name;
     MongoClient.connect(url, function(err, db) {
         if(!err) {
             var college_collection = db.collection(collection_name_colleges);
-            var user_input_college = {
-                "institution name": req.param('college_input')
-            };
-            console.log(user_input_college + "HI");
-            college_collection.find( { "institution name": req.param('college_input')  } ).toArray(function(err, result) {
+            var college_search_value =  req.param('college_input');
+            console.log(college_search_value);
+            college_collection.find(
+                // The following uses indexed text scoring
+                {$text: {$search: college_search_value}}, {score: {$meta:"textScore"}}
+                // The following uses regex search
+                //{ "institution name": new RegExp(college_search_value, 'i')}
+            ).sort( { score: {$meta: "textScore" }})
+                .limit(20).toArray(function(err, result) {
                 if(!err) {
                     if(result.length) {
-                        res.send(result.toString());
+                        var response_string = "Success: found " + result.length + " or more result(s)<br>" ;
+                        //for(var i = 0; i < result.length; i++) {
+                        //    response_string += result[i]['institution name'];
+                        //    response_string += "<br>";
+                        //}
+                        response_string += result.map(function(x) {
+                            return x['institution name'] + "<br>";
+                        });
+                        res.send(response_string);
                     } else {
                         res.send("Nothing found!");
                     }
