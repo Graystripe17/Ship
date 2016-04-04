@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 var mongodb = require('mongodb');
 var session = require("express-session");
+var passport = require('passport');
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var mongodb_url_prefix = "mongodb://localhost:27017/";
 var database_name = "ShipDB";
 var ShipDB_url = mongodb_url_prefix + database_name;
@@ -14,6 +16,9 @@ router.use(session({
     duration: 30 * 60 * 1000,
     activeDuration: 5 * 60 * 1000
 }));
+
+router.use(passport.initialize());
+router.use(passport.session());
 
 // TODO: Implement OAuth 2.0
 
@@ -35,6 +40,8 @@ router.post('/validate', function(req, res) {
     MongoClient.connect(url, function(err, db) {
        if(!err) {
            console.log("Connection established successfully");
+           req.checkBody('username', 'Name is required').notEmpty();
+           // req.checkBody('email', 'Email is not valid').isEmail();
            var user_collection = db.collection(collection_name_users);
            var user_login_input = {
                username: req.body.username,
@@ -66,8 +73,10 @@ router.post('/validate', function(req, res) {
            console.log("Cannot connect ", err);
        }
     });
-
 });
+
+router.post('/google', passport.authenticate('local', { successRedirect: '/',
+                                                        failureRedirect: '/ppooop'}))
 
 router.post('/insert', function(req, res) {
     var MongoClient = mongodb.MongoClient;
@@ -144,5 +153,36 @@ router.get('/search', function(req, res) {
         }
     });
 });
+
+
+
+
+
+
+passport.use(new GoogleStrategy( {
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: "localhost:3000/auth/google/callback:"
+    },
+    function(accessToken, refreshToken, profile, done) {
+        User.findOrCreate({ googleId: profile.id }, function(err, user) {
+            return done(err, user);
+        })
+    }
+));
+
+app.get('/auth/google',
+    passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login']}));
+
+app.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    function(req, res) {
+        res.redirect('/');
+    }
+);
+
+
+
+
 
 module.exports = router;
