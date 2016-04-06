@@ -20,6 +20,9 @@
     "mongodb": "~2.1.7",
     "client-sessions": "0.7.0",
     "passport": "0.3.2",
-    "passport-google-oauth": "1.0.0"
+    "passport-google-oauth": "1.0.0",
+    "mongoose": "4.4.11",
+    "bcrypt-nodejs": "latest",
+    "connect-flash": "~0.1.1"
   }
 }

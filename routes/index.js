@@ -1,14 +1,25 @@
+// Frameworks
 var express = require('express');
 var router = express.Router();
 var mongodb = require('mongodb');
 var session = require("express-session");
+
+// OAuth
 var passport = require('passport');
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var GOOGLE_CLIENT_ID = "861880657387-jf5so6gjos6rtjd4nbfedbimclbstugm.apps.googleusercontent.com";
+var GOOGLE_CLIENT_SECRET = "6knFWC0xjrpvDpzt1U3SzbAJ";
+
+// Database strings
 var mongodb_url_prefix = "mongodb://localhost:27017/";
 var database_name = "ShipDB";
 var ShipDB_url = mongodb_url_prefix + database_name;
 var collection_name_users = "users";
 var collection_name_colleges = "colleges";
+
+// Unit testing
+const assert = require('assert');
+
 
 router.use(session({
     cookieName: 'session',
@@ -82,6 +93,7 @@ router.post('/insert', function(req, res) {
     var MongoClient = mongodb.MongoClient;
     var URL = mongodb_url_prefix + database_name;
     MongoClient.connect(URL, function(err, db) {
+        assert.ifError(err);
         if(!err) {
             var user_collection = db.collection(collection_name_users);
             // Do error checks below
@@ -171,17 +183,15 @@ passport.use(new GoogleStrategy( {
     }
 ));
 
-app.get('/auth/google',
+router.get('/auth/google',
     passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login']}));
 
-app.get('/auth/google/callback',
+router.get('http://localhost:3000/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     function(req, res) {
         res.redirect('/');
     }
 );
-
-
 
 
 
