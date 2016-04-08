@@ -25,7 +25,9 @@ router.use(session({
     cookieName: 'session',
     secret: 'random_string',
     duration: 30 * 60 * 1000,
-    activeDuration: 5 * 60 * 1000
+    activeDuration: 5 * 60 * 1000,
+    resave: 10000,
+    saveUninitialized: 1000
 }));
 
 router.use(passport.initialize());
@@ -174,9 +176,10 @@ router.get('/search', function(req, res) {
 passport.use(new GoogleStrategy( {
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: "localhost:3000/auth/google/callback:"
+        callbackURL: "localhost:3000/auth/google/callback"
     },
     function(accessToken, refreshToken, profile, done) {
+        console.log('WATCHME');
         User.findOrCreate({ googleId: profile.id }, function(err, user) {
             return done(err, user);
         })
@@ -186,10 +189,12 @@ passport.use(new GoogleStrategy( {
 router.get('/auth/google',
     passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login']}));
 
-router.get('http://localhost:3000/auth/google/callback',
+router.get(
+    '/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     function(req, res) {
-        res.redirect('/');
+        console.log('Received redirect to home request');
+        res.redirect('http://localhost:3000/');
     }
 );
 
